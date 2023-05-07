@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,100 +39,88 @@ import com.mytangibleproperty.rems.services.PropertyTypeService;
  */
 
 @Controller
-public class CommonController
-{
+public class CommonController {
 
 	@Autowired
-	PageService			pageService;
+	PageService pageService;
 
 	@Autowired
-	PropertyTypeService	propertyTypeService;
+	PropertyTypeService propertyTypeService;
 
 	@Autowired
-	CityService			cityService;
+	CityService cityService;
 
 	@Autowired
-	PropertyService		propertyService;
+	PropertyService propertyService;
 
 	@Autowired
-	FeedbackService		feedbackService;
+	FeedbackService feedbackService;
 
 	@Autowired
-	EnquiryService		enquiryService;
-	
+	EnquiryService enquiryService;
+
 	@GetMapping(value = "/index.html")
-	public ModelAndView home(HttpServletRequest request, HttpServletResponse response)
-	{
-		ModelAndView	model		= new ModelAndView("index", "Function_Name", "home");
-		List<City>		cityList	= cityService.getAllCity();
+	public ModelAndView home(HttpServletRequest request, HttpServletResponse response) {
+		ModelAndView model = new ModelAndView("index", "Function_Name", "home");
+		List<City> cityList = cityService.getAllCity();
 		model.addObject("cityList", cityList);
 		List<PropertyType> propertyTypeList = propertyTypeService.getAllPropertyType();
 		model.addObject("propertyTypeList", propertyTypeList);
-		List<Property> propertyList = propertyService.getAllProperty();
+		List<Property> propertyList = propertyService.getAllProperty().stream().sorted().collect(Collectors.toList());
 		model.addObject("propertyList", propertyList);
 		String error = (String) request.getParameter("e");
-		if (error != null)
-		{
+		if (error != null) {
 			model.addObject("error", error);
 		}
 		return model;
 	}
 
 	@GetMapping(value = "/about.html")
-	public ModelAndView about(HttpServletRequest request, HttpServletResponse response)
-	{
-		Page			page	= pageService.getPageByPageType("aboutus");
-		ModelAndView	model	= new ModelAndView("about", "Function_Name", "about");
+	public ModelAndView about(HttpServletRequest request, HttpServletResponse response) {
+		Page page = pageService.getPageByPageType("aboutus");
+		ModelAndView model = new ModelAndView("about", "Function_Name", "about");
 		model.addObject("pageDetails", page.getPageDescription());
 		return model;
 	}
 
 	@GetMapping(value = "/contact.html")
-	public ModelAndView contact(HttpServletRequest request, HttpServletResponse response)
-	{
-		Page			page	= pageService.getPageByPageType("contactus");
-		ModelAndView	model	= new ModelAndView("contact", "Function_Name", "contact");
+	public ModelAndView contact(HttpServletRequest request, HttpServletResponse response) {
+		Page page = pageService.getPageByPageType("contactus");
+		ModelAndView model = new ModelAndView("contact", "Function_Name", "contact");
 		model.addObject("page", page);
 		return model;
 	}
 
 	@GetMapping(value = "/properties-grid.html")
-	public ModelAndView getPropertiesListing(HttpServletRequest request, HttpServletResponse response)
-	{
+	public ModelAndView getPropertiesListing(HttpServletRequest request, HttpServletResponse response) {
 		return propertiesListing(request, response);
 	}
 
 	@PostMapping(value = "/properties-grid.html")
-	public ModelAndView propertiesListing(HttpServletRequest request, HttpServletResponse response)
-	{
-		String			propertyTypeId	= (String) request.getParameter("propertyTypeId");
-		String			status			= (String) request.getParameter("status");
-		String			cityId			= (String) request.getParameter("cityId");
+	public ModelAndView propertiesListing(HttpServletRequest request, HttpServletResponse response) {
+		String propertyTypeId = (String) request.getParameter("propertyTypeId");
+		String status = (String) request.getParameter("status");
+		String cityId = (String) request.getParameter("cityId");
 
-		ModelAndView	model			= new ModelAndView("properties-grid");
-		List<City>		cityList		= cityService.getAllCity();
+		ModelAndView model = new ModelAndView("properties-grid");
+		List<City> cityList = cityService.getAllCity();
 		model.addObject("cityList", cityList);
 		List<PropertyType> propertyTypeList = propertyTypeService.getAllPropertyType();
 		model.addObject("propertyTypeList", propertyTypeList);
-		List<Property>		propertyList	= null;
-		Map<String, Object>	criteria		= new HashMap<>();
-		if (propertyTypeId != null)
-		{
+		List<Property> propertyList = null;
+		Map<String, Object> criteria = new HashMap<>();
+		if (propertyTypeId != null) {
 			criteria.put("PROPERTY_TYPE", propertyTypeId);
 		}
-		if (status != null)
-		{
+		if (status != null) {
 			criteria.put("STATUS", status);
 		}
-		if (cityId != null)
-		{
+		if (cityId != null) {
 			criteria.put("CITY", cityId);
 		}
-		if (criteria.isEmpty())
-		{
+		if (criteria.isEmpty()) {
 			propertyList = propertyService.getAllProperty();
-		} else
-		{
+		} else {
 			propertyList = propertyService.getPropertyByCriteria(criteria);
 		}
 		model.addObject("propertyList", propertyList);
@@ -139,15 +128,14 @@ public class CommonController
 	}
 
 	@GetMapping(value = "/single-property-detail.html")
-	public ModelAndView propertyDetails(HttpServletRequest request, HttpServletResponse response)
-	{
-		String			propertyId		= (String) request.getParameter("propertyId");
-		Property		property		= propertyService.getPropertyById(Integer.parseInt(propertyId));
-		City			city			= cityService.getCityById(property.getCity());
-		List<Feedback>	feedbacks		= feedbackService.getFeedbackByPropertyId(propertyId);
+	public ModelAndView propertyDetails(HttpServletRequest request, HttpServletResponse response) {
+		String propertyId = (String) request.getParameter("propertyId");
+		Property property = propertyService.getPropertyById(Integer.parseInt(propertyId));
+		City city = cityService.getCityById(property.getCity());
+		List<Feedback> feedbacks = feedbackService.getFeedbackByPropertyId(propertyId);
 		// Get Random 9 except current property
-		List<Property>	propertyList	= propertyService.getRandomProperties(propertyId);
-		ModelAndView	model			= new ModelAndView("single-property-detail");
+		List<Property> propertyList = propertyService.getRandomProperties(propertyId);
+		ModelAndView model = new ModelAndView("single-property-detail");
 		model.addObject("property", property);
 		model.addObject("city", city);
 		model.addObject("feedbacks", feedbacks);
@@ -156,14 +144,13 @@ public class CommonController
 	}
 
 	@PostMapping(value = "/saveEnquiry.html")
-	public ModelAndView saveEnquiry(@ModelAttribute Enquiry enquiry, HttpServletRequest request)
-	{
-		String		propertyId	= (String) request.getParameter("propertyId");
-		Property	property	= new Property();
+	public ModelAndView saveEnquiry(@ModelAttribute Enquiry enquiry, HttpServletRequest request) {
+		String propertyId = (String) request.getParameter("propertyId");
+		Property property = new Property();
 		property.setPropertyId(Integer.parseInt(propertyId));
 		enquiry.setEnquiryDate(new Date());
-		Random	randomNum		= new Random();
-		int		enquiryNumber	= 100000000 + randomNum.nextInt(900000000);
+		Random randomNum = new Random();
+		int enquiryNumber = 100000000 + randomNum.nextInt(900000000);
 		enquiry.setEnquiryNumber(enquiryNumber + "");
 		enquiry.setProperty(property);
 		enquiryService.saveEnquiry(enquiry);

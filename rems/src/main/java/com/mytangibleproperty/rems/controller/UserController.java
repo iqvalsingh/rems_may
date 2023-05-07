@@ -55,53 +55,48 @@ import com.mytangibleproperty.rems.services.UserService;
  *
  */
 @Controller
-public class UserController
-{
+public class UserController {
 
 	@Autowired
-	UserService			userService;
+	UserService userService;
 
 	@Autowired
-	PropertyTypeService	propertyTypeService;
+	PropertyTypeService propertyTypeService;
 
 	@Autowired
-	CountryService		countryService;
+	CountryService countryService;
 
 	@Autowired
-	StateService		stateService;
+	StateService stateService;
 
 	@Autowired
-	CityService			cityService;
+	CityService cityService;
 
 	@Autowired
-	PropertyService		propertyService;
+	PropertyService propertyService;
 
 	@Autowired
-	FeedbackService		feedbackService;
+	FeedbackService feedbackService;
 
 	@Autowired
-	EnquiryService		enquiryService;
+	EnquiryService enquiryService;
 
 	@PostMapping(value = "/login.html")
-	public ModelAndView login(HttpServletRequest request, HttpServletResponse response)
-	{
-		String			email			= (String) request.getParameter("email");
-		String			passwordInput	= (String) request.getParameter("password");
+	public ModelAndView login(HttpServletRequest request, HttpServletResponse response) {
+		String email = (String) request.getParameter("email");
+		String passwordInput = (String) request.getParameter("password");
 
-		String			password		= passwordInput;
-		MessageDigest	md				= null;
-		try
-		{
+		String password = passwordInput;
+		MessageDigest md = null;
+		try {
 			md = MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException e)
-		{
+		} catch (NoSuchAlgorithmException e) {
 			// Log
 		}
 		md.update(passwordInput.getBytes());
 		BigInteger hash = new BigInteger(1, md.digest());
 		password = hash.toString(16);
-		while (password.length() < 32)
-		{ // 40 for SHA-1
+		while (password.length() < 32) { // 40 for SHA-1
 			password = "0" + password;
 		}
 
@@ -109,11 +104,9 @@ public class UserController
 		loginMap.put("EMAIL", email);
 		loginMap.put("PASSWORD", password);
 		List<User> userList = userService.getUsers(loginMap);
-		if (!CollectionUtils.isEmpty(userList))
-		{
+		if (!CollectionUtils.isEmpty(userList)) {
 			request.getSession().setAttribute("user", userList.get(0));
-		} else
-		{
+		} else {
 			return new ModelAndView("redirect:/index.html?e=INVALID_CREDS");
 		}
 
@@ -121,35 +114,30 @@ public class UserController
 	}
 
 	@GetMapping(value = "/logout.html")
-	public ModelAndView logout(HttpServletRequest request, HttpServletResponse response)
-	{
+	public ModelAndView logout(HttpServletRequest request, HttpServletResponse response) {
 		request.getSession().removeAttribute("user");
 		ModelAndView model = new ModelAndView("redirect:/index.html");
 		return model;
 	}
 
 	@GetMapping(value = "/forgot-password.html")
-	public ModelAndView forgotPassword(HttpServletRequest request, HttpServletResponse response)
-	{
+	public ModelAndView forgotPassword(HttpServletRequest request, HttpServletResponse response) {
 		ModelAndView model = new ModelAndView("forgot-password");
 		return model;
 	}
 
 	@PostMapping(value = "/reset-password.html")
-	public ModelAndView resetPassword(HttpServletRequest request, HttpServletResponse response)
-	{
-		String				email			= (String) request.getParameter("email");
-		String				mobileNumber	= (String) request.getParameter("mobilenumber");
-		Map<String, Object>	loginMap		= new HashMap<>();
+	public ModelAndView resetPassword(HttpServletRequest request, HttpServletResponse response) {
+		String email = (String) request.getParameter("email");
+		String mobileNumber = (String) request.getParameter("mobilenumber");
+		Map<String, Object> loginMap = new HashMap<>();
 		loginMap.put("EMAIL", email);
 		loginMap.put("MOBILENUMBER", mobileNumber);
-		List<User>		userList	= userService.getUsers(loginMap);
-		ModelAndView	model		= new ModelAndView("reset-password");
-		if (!CollectionUtils.isEmpty(userList))
-		{
+		List<User> userList = userService.getUsers(loginMap);
+		ModelAndView model = new ModelAndView("reset-password");
+		if (!CollectionUtils.isEmpty(userList)) {
 			model.addObject("user", userList.get(0));
-		} else
-		{
+		} else {
 			model = new ModelAndView("forgot-password");
 			model.addObject("message", "Invalid Details. Please try again.");
 		}
@@ -157,59 +145,50 @@ public class UserController
 	}
 
 	@PostMapping(value = "/saveNewPassword.html")
-	public ModelAndView saveNewPassword(HttpServletRequest request, HttpServletResponse response)
-	{
-		String	newPassword		= (String) request.getParameter("newpassword");
-		String	confirmPassword	= (String) request.getParameter("confirmpassword");
-		if (newPassword != null && confirmPassword != null && newPassword.equals(confirmPassword))
-		{
-			String			userId		= (String) request.getParameter("userId");
-			User			user		= userService.getUserById(Integer.parseInt(userId));
-			String			password	= newPassword;
-			MessageDigest	md			= null;
-			try
-			{
+	public ModelAndView saveNewPassword(HttpServletRequest request, HttpServletResponse response) {
+		String newPassword = (String) request.getParameter("newpassword");
+		String confirmPassword = (String) request.getParameter("confirmpassword");
+		if (newPassword != null && confirmPassword != null && newPassword.equals(confirmPassword)) {
+			String userId = (String) request.getParameter("userId");
+			User user = userService.getUserById(Integer.parseInt(userId));
+			String password = newPassword;
+			MessageDigest md = null;
+			try {
 				md = MessageDigest.getInstance("MD5");
-			} catch (NoSuchAlgorithmException e)
-			{
+			} catch (NoSuchAlgorithmException e) {
 				// Log
 			}
 			md.update(newPassword.getBytes());
 			BigInteger hash = new BigInteger(1, md.digest());
 			password = hash.toString(16);
-			while (password.length() < 32)
-			{ // 40 for SHA-1
+			while (password.length() < 32) { // 40 for SHA-1
 				password = "0" + password;
 			}
 			user.setPassword(password);
 			userService.updateUser(user);
 			return new ModelAndView("redirect:/login.html");
-		} else
-		{
+		} else {
 			// Passwords did not match
 			return new ModelAndView("redirect:/reset-password.html");
 		}
 	}
 
 	@PostMapping(value = "/signup.html")
-	public ModelAndView signup(HttpServletRequest request, HttpServletResponse response)
-	{
-		String				fullName		= (String) request.getParameter("fullname");
-		String				email			= (String) request.getParameter("email");
-		String				mobileNumber	= (String) request.getParameter("mobilenumber");
-		String				passwordInput	= (String) request.getParameter("password");
-		String				usertype		= (String) request.getParameter("usertype");
+	public ModelAndView signup(HttpServletRequest request, HttpServletResponse response) {
+		String fullName = (String) request.getParameter("fullname");
+		String email = (String) request.getParameter("email");
+		String mobileNumber = (String) request.getParameter("mobilenumber");
+		String passwordInput = (String) request.getParameter("password");
+		String usertype = (String) request.getParameter("usertype");
 
-		Map<String, Object>	loginMap		= new HashMap<>();
+		Map<String, Object> loginMap = new HashMap<>();
 		loginMap.put("EMAIL", email);
 		List<User> userList = userService.getUsers(loginMap);
-		if (!CollectionUtils.isEmpty(userList))
-		{
+		if (!CollectionUtils.isEmpty(userList)) {
 			// Email already exists
-		} else
-		{
-			Date	now		= new Date();
-			User	user	= new User();
+		} else {
+			Date now = new Date();
+			User user = new User();
 			user.setFullName(fullName);
 			user.setEmail(email);
 			user.setMobileNumber(Long.parseLong(mobileNumber));
@@ -217,20 +196,17 @@ public class UserController
 			user.setUpdationDate(now);
 			user.setUserType(Integer.parseInt(usertype));
 
-			String			password	= passwordInput;
-			MessageDigest	md			= null;
-			try
-			{
+			String password = passwordInput;
+			MessageDigest md = null;
+			try {
 				md = MessageDigest.getInstance("MD5");
-			} catch (NoSuchAlgorithmException e)
-			{
+			} catch (NoSuchAlgorithmException e) {
 				// Log
 			}
 			md.update(passwordInput.getBytes());
 			BigInteger hash = new BigInteger(1, md.digest());
 			password = hash.toString(16);
-			while (password.length() < 32)
-			{ // 40 for SHA-1
+			while (password.length() < 32) { // 40 for SHA-1
 				password = "0" + password;
 			}
 			user.setPassword(password);
@@ -240,52 +216,44 @@ public class UserController
 	}
 
 	@GetMapping(value = "/change-password.html")
-	public ModelAndView changePassword(HttpServletRequest request, HttpServletResponse response)
-	{
-		User			user	= (User) request.getSession().getAttribute("user");
-		ModelAndView	model	= new ModelAndView("change-password");
+	public ModelAndView changePassword(HttpServletRequest request, HttpServletResponse response) {
+		User user = (User) request.getSession().getAttribute("user");
+		ModelAndView model = new ModelAndView("change-password");
 		model.addObject("user", user);
 		return model;
 	}
 
 	@PostMapping(value = "/updatePassword.html")
-	public ModelAndView updatePassword(HttpServletRequest request, HttpServletResponse response)
-	{
-		User			user				= (User) request.getSession().getAttribute("user");
-		String			currentPassword		= (String) request.getParameter("currentpassword");
-		String			newPassword			= (String) request.getParameter("newpassword");
-		String			confirmPassword		= (String) request.getParameter("confirmpassword");
+	public ModelAndView updatePassword(HttpServletRequest request, HttpServletResponse response) {
+		User user = (User) request.getSession().getAttribute("user");
+		String currentPassword = (String) request.getParameter("currentpassword");
+		String newPassword = (String) request.getParameter("newpassword");
+		String confirmPassword = (String) request.getParameter("confirmpassword");
 
-		String			tempCurrentPassword	= currentPassword;
-		MessageDigest	md					= null;
-		try
-		{
+		String tempCurrentPassword = currentPassword;
+		MessageDigest md = null;
+		try {
 			md = MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException e)
-		{
+		} catch (NoSuchAlgorithmException e) {
 			// Log
 		}
 		md.update(currentPassword.getBytes());
 		BigInteger hash = new BigInteger(1, md.digest());
 		tempCurrentPassword = hash.toString(16);
-		while (tempCurrentPassword.length() < 32)
-		{ // 40 for SHA-1
+		while (tempCurrentPassword.length() < 32) { // 40 for SHA-1
 			tempCurrentPassword = "0" + tempCurrentPassword;
 		}
 		ModelAndView model = new ModelAndView("change-password");
-		if (!tempCurrentPassword.equals(user.getPassword()))
-		{
+		if (!tempCurrentPassword.equals(user.getPassword())) {
 			model.addObject("message", "Your current password is wrong");
 			return model;
 		}
 
-		if (newPassword != null && confirmPassword != null && newPassword.equals(confirmPassword))
-		{
+		if (newPassword != null && confirmPassword != null && newPassword.equals(confirmPassword)) {
 			String password = newPassword;
 			md.update(newPassword.getBytes());
 			password = hash.toString(16);
-			while (password.length() < 32)
-			{ // 40 for SHA-1
+			while (password.length() < 32) { // 40 for SHA-1
 				password = "0" + password;
 			}
 			user.setPassword(password);
@@ -296,15 +264,13 @@ public class UserController
 	}
 
 	@GetMapping(value = "/add-property.html")
-	public ModelAndView addPropertyPage(HttpServletRequest request, HttpServletResponse response)
-	{
+	public ModelAndView addPropertyPage(HttpServletRequest request, HttpServletResponse response) {
 		User user = (User) request.getSession().getAttribute("user");
-		if (user == null)
-		{
+		if (user == null) {
 			return new ModelAndView("redirect:/index.html?e=USER_NOT_LOGGED_IN");
 		}
-		ModelAndView	model		= new ModelAndView("add-property");
-		List<Country>	countryList	= countryService.getAllCountry();
+		ModelAndView model = new ModelAndView("add-property");
+		List<Country> countryList = countryService.getAllCountry();
 		model.addObject("countryList", countryList);
 		List<State> stateList = stateService.getAllState();
 		model.addObject("stateList", stateList);
@@ -316,30 +282,31 @@ public class UserController
 		return model;
 	}
 
-	private void fileUpload(InputStream inputStream, String path, String propertyImageName) throws IOException
-	{
-		File			file			= new File(
-				path + "rems//propertyimages//");
-		File			imageFile		= new File(file, propertyImageName);
-		OutputStream	outputStream	= new FileOutputStream(imageFile);
-		int				bytesRead		= 0;
-		byte[]			dataBytes		= new byte[4 * 1024];
-		while ((bytesRead = inputStream.read(dataBytes)) != -1)
-		{
+	private void fileUpload(InputStream inputStream, String path, String propertyImageName) throws IOException {
+//		File file = new File(path + "rems//propertyimages//");
+		File file;
+		if (path.contains("ROOT")) {
+			file = new File(path + "html/propertyimages/"); // Unix box.
+		} else {
+			file = new File(path + "rems//src//main//webapp//html//propertyimages//");
+		}
+		File imageFile = new File(file, propertyImageName);
+		OutputStream outputStream = new FileOutputStream(imageFile);
+		int bytesRead = 0;
+		byte[] dataBytes = new byte[4 * 1024];
+		while ((bytesRead = inputStream.read(dataBytes)) != -1) {
 			outputStream.write(dataBytes, 0, bytesRead);
 			outputStream.flush();
 		}
 		outputStream.close();
 	}
 
-	@PostMapping(value = "/saveProperty.html", consumes =
-	{ MediaType.MULTIPART_FORM_DATA_VALUE })
+	@PostMapping(value = "/saveProperty.html", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	public ModelAndView saveProperty(@ModelAttribute Property property, HttpServletRequest request,
-			HttpServletResponse response) throws IOException, ServletException
-	{
-		User						user				= (User) request.getSession().getAttribute("user");
-		MultipartHttpServletRequest	multipartRequest	= (MultipartHttpServletRequest) request;
-		Map<String, MultipartFile>	imageMap			= multipartRequest.getFileMap();
+			HttpServletResponse response) throws IOException, ServletException {
+		User user = (User) request.getSession().getAttribute("user");
+		MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+		Map<String, MultipartFile> imageMap = multipartRequest.getFileMap();
 		// property.setId(-1);
 		property.setUser(user);
 		Random randomNum = new Random();
@@ -352,33 +319,36 @@ public class UserController
 		property.setGalleryImage5(imageMap.get("uploadedGalleryImage5").getOriginalFilename());
 		property.setListingDate(new Date());
 
-		String	path		= this.getClass().getClassLoader().getResource("").getPath();
-		String	fullPath	= URLDecoder.decode(path, "UTF-8");
-		String	pathArr[]	= fullPath.split("/rems/");
+		String path = this.getClass().getClassLoader().getResource("").getPath();
+		String fullPath = URLDecoder.decode(path, "UTF-8");
+//		String	pathArr[]	= fullPath.split("/rems/");
+		System.out.println("fullPath>>>>>>>>>>.." + fullPath);
+		int i = fullPath.lastIndexOf("rems/");
+		if (i < 0) {
+			i = fullPath.lastIndexOf("WEB-INF/"); // Unix box.
+		}
+		String pathArr[] = { fullPath.substring(0, i), fullPath.substring(i) };
 		fullPath = pathArr[0];
 
 		fileUpload(imageMap.get("uploadedFeaturedImage").getInputStream(), fullPath, property.getFeaturedImage());
-		fileUpload(imageMap.get("uploadedGalleryImage1").getInputStream(), fullPath, property.getFeaturedImage());
-		fileUpload(imageMap.get("uploadedGalleryImage2").getInputStream(), fullPath, property.getFeaturedImage());
-		fileUpload(imageMap.get("uploadedGalleryImage3").getInputStream(), fullPath, property.getFeaturedImage());
-		fileUpload(imageMap.get("uploadedGalleryImage4").getInputStream(), fullPath, property.getFeaturedImage());
-		fileUpload(imageMap.get("uploadedGalleryImage5").getInputStream(), fullPath, property.getFeaturedImage());
+		fileUpload(imageMap.get("uploadedGalleryImage1").getInputStream(), fullPath, property.getGalleryImage1());
+		fileUpload(imageMap.get("uploadedGalleryImage2").getInputStream(), fullPath, property.getGalleryImage2());
+		fileUpload(imageMap.get("uploadedGalleryImage3").getInputStream(), fullPath, property.getGalleryImage3());
+		fileUpload(imageMap.get("uploadedGalleryImage4").getInputStream(), fullPath, property.getGalleryImage4());
+		fileUpload(imageMap.get("uploadedGalleryImage5").getInputStream(), fullPath, property.getGalleryImage5());
 		propertyService.saveProperty(property);
 
 		return new ModelAndView("redirect:/properties-grid.html");
 	}
 
 	@PostMapping(value = "/saveReview.html")
-	public ModelAndView saveReview(HttpServletRequest request, HttpServletResponse response)
-	{
-		User			user			= (User) request.getSession().getAttribute("user");
-		String			propertyId		= (String) request.getParameter("propertyId");
-		String			reviewcomment	= (String) request.getParameter("reviewcomment");
+	public ModelAndView saveReview(HttpServletRequest request, HttpServletResponse response) {
+		User user = (User) request.getSession().getAttribute("user");
+		String propertyId = (String) request.getParameter("propertyId");
+		String reviewcomment = (String) request.getParameter("reviewcomment");
 
-		ModelAndView	model			= new ModelAndView(
-				"redirect:/single-property-detail.html?propertyId=" + propertyId);
-		if (user == null)
-		{
+		ModelAndView model = new ModelAndView("redirect:/single-property-detail.html?propertyId=" + propertyId);
+		if (user == null) {
 			request.getSession().setAttribute("issue", "ISSUE-USER-NOT-LOGGED-IN");
 			return model;
 		}
@@ -396,18 +366,16 @@ public class UserController
 	}
 
 	@GetMapping(value = "/user-profile.html")
-	public ModelAndView userProfile(HttpServletRequest request, HttpServletResponse response)
-	{
-		User			user	= (User) request.getSession().getAttribute("user");
-		ModelAndView	model	= new ModelAndView("user-profile");
+	public ModelAndView userProfile(HttpServletRequest request, HttpServletResponse response) {
+		User user = (User) request.getSession().getAttribute("user");
+		ModelAndView model = new ModelAndView("user-profile");
 		model.addObject("user", user);
 		return model;
 	}
 
 	@PostMapping(value = "/updateUserProfile.html")
 	public ModelAndView updateUserProfile(@ModelAttribute User user, HttpServletRequest request,
-			HttpServletResponse response)
-	{
+			HttpServletResponse response) {
 		User sessionUser = (User) request.getSession().getAttribute("user");
 		sessionUser.setFullName(user.getFullName());
 		sessionUser.setMobileNumber(user.getMobileNumber());
@@ -419,23 +387,19 @@ public class UserController
 	}
 
 	@GetMapping(value = "/enquiries.html")
-	public ModelAndView enquiries(HttpServletRequest request, HttpServletResponse response)
-	{
-		String				status		= (String) request.getParameter("status");
-		User				user		= (User) request.getSession().getAttribute("user");
-		Map<String, Object>	criteria	= new HashMap<>();
+	public ModelAndView enquiries(HttpServletRequest request, HttpServletResponse response) {
+		String status = (String) request.getParameter("status");
+		User user = (User) request.getSession().getAttribute("user");
+		Map<String, Object> criteria = new HashMap<>();
 		criteria.put("USERID", user.getUserId());
 		ModelAndView model = null;
-		if (status.equals("Received"))
-		{
+		if (status.equals("Received")) {
 			criteria.put("STATUS", null);
 			model = new ModelAndView("enquiry");
-		} else if (status.equals("Answer"))
-		{
+		} else if (status.equals("Answer")) {
 			criteria.put("STATUS", "Answer");
 			model = new ModelAndView("ansenquiry");
-		} else
-		{
+		} else {
 			model = new ModelAndView("enquiry-status");
 		}
 		List<Enquiry> enquiryList = enquiryService.getEnquiryByCriteria(criteria);
@@ -444,23 +408,21 @@ public class UserController
 	}
 
 	@GetMapping(value = "/view-enquiry-detail.html")
-	public ModelAndView enquiryDetails(HttpServletRequest request, HttpServletResponse response)
-	{
-		int				eqnuiryId	= Integer.parseInt((String) request.getParameter("eqnuiryId"));
-		Enquiry			enquiry		= enquiryService.getEnquiryById(eqnuiryId);
-		ModelAndView	model		= new ModelAndView("view-enquiry-detail");
+	public ModelAndView enquiryDetails(HttpServletRequest request, HttpServletResponse response) {
+		int eqnuiryId = Integer.parseInt((String) request.getParameter("eqnuiryId"));
+		Enquiry enquiry = enquiryService.getEnquiryById(eqnuiryId);
+		ModelAndView model = new ModelAndView("view-enquiry-detail");
 		model.addObject("enquiry", enquiry);
 		return model;
 	}
 
 	@GetMapping(value = "/my-properties.html")
-	public ModelAndView propertiesListing(HttpServletRequest request, HttpServletResponse response)
-	{
-		User				user			= (User) request.getSession().getAttribute("user");
+	public ModelAndView propertiesListing(HttpServletRequest request, HttpServletResponse response) {
+		User user = (User) request.getSession().getAttribute("user");
 
-		ModelAndView		model			= new ModelAndView("my-properties");
-		List<Property>		propertyList	= null;
-		Map<String, Object>	criteria		= new HashMap<>();
+		ModelAndView model = new ModelAndView("my-properties");
+		List<Property> propertyList = null;
+		Map<String, Object> criteria = new HashMap<>();
 		criteria.put("USERID", user.getUserId());
 		propertyList = propertyService.getPropertyByCriteria(criteria);
 		model.addObject("propertyList", propertyList);
@@ -468,12 +430,11 @@ public class UserController
 	}
 
 	@GetMapping(value = "/edit-property.html")
-	public ModelAndView editPropertyPage(HttpServletRequest request, HttpServletResponse response)
-	{
-		String			propertyId	= (String) request.getParameter("propertyId");
-		Property		property	= propertyService.getPropertyById(Integer.parseInt(propertyId));
-		ModelAndView	model		= new ModelAndView("edit-property");
-		List<Country>	countryList	= countryService.getAllCountry();
+	public ModelAndView editPropertyPage(HttpServletRequest request, HttpServletResponse response) {
+		String propertyId = (String) request.getParameter("propertyId");
+		Property property = propertyService.getPropertyById(Integer.parseInt(propertyId));
+		ModelAndView model = new ModelAndView("edit-property");
+		List<Country> countryList = countryService.getAllCountry();
 		model.addObject("countryList", countryList);
 		List<State> stateList = stateService.getAllState();
 		model.addObject("stateList", stateList);
@@ -488,35 +449,33 @@ public class UserController
 	}
 
 	@GetMapping(value = "/changeimage.html")
-	public ModelAndView changePropertyImage(HttpServletRequest request, HttpServletResponse response)
-	{
-		String			propertyId	= (String) request.getParameter("propertyId");
-		String			imageName	= (String) request.getParameter("imageName");
-		Property		property	= propertyService.getPropertyById(Integer.parseInt(propertyId));
-		ModelAndView	model		= new ModelAndView("changeimage");
+	public ModelAndView changePropertyImage(HttpServletRequest request, HttpServletResponse response) {
+		String propertyId = (String) request.getParameter("propertyId");
+		String imageName = (String) request.getParameter("imageName");
+		Property property = propertyService.getPropertyById(Integer.parseInt(propertyId));
+		ModelAndView model = new ModelAndView("changeimage");
 		model.addObject("propertyId", propertyId);
 		model.addObject("propertyTitle", property.getPropertyTitle());
 		String propertyImage = null;
-		switch (imageName)
-		{
-			case "featuredImage":
-				propertyImage = property.getFeaturedImage();
-				break;
-			case "galleryImage1":
-				propertyImage = property.getGalleryImage1();
-				break;
-			case "galleryImage2":
-				propertyImage = property.getGalleryImage2();
-				break;
-			case "galleryImage3":
-				propertyImage = property.getGalleryImage3();
-				break;
-			case "galleryImage4":
-				propertyImage = property.getGalleryImage4();
-				break;
-			case "galleryImage5":
-				propertyImage = property.getGalleryImage5();
-				break;
+		switch (imageName) {
+		case "featuredImage":
+			propertyImage = property.getFeaturedImage();
+			break;
+		case "galleryImage1":
+			propertyImage = property.getGalleryImage1();
+			break;
+		case "galleryImage2":
+			propertyImage = property.getGalleryImage2();
+			break;
+		case "galleryImage3":
+			propertyImage = property.getGalleryImage3();
+			break;
+		case "galleryImage4":
+			propertyImage = property.getGalleryImage4();
+			break;
+		case "galleryImage5":
+			propertyImage = property.getGalleryImage5();
+			break;
 		}
 		model.addObject("propertyImage", propertyImage);
 		model.addObject("imageName", imageName);
@@ -524,44 +483,43 @@ public class UserController
 		return model;
 	}
 
-	@PostMapping(value = "/saveImage.html", consumes =
-	{ MediaType.MULTIPART_FORM_DATA_VALUE })
+	@PostMapping(value = "/saveImage.html", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
 	public ModelAndView saveImage(HttpServletRequest request, HttpServletResponse response)
-			throws IOException, ServletException
-	{
-		String						propertyId			= (String) request.getParameter("propertyId");
-		String						imageName			= (String) request.getParameter("imageName");
-		MultipartHttpServletRequest	multipartRequest	= (MultipartHttpServletRequest) request;
-		Map<String, MultipartFile>	imageMap			= multipartRequest.getFileMap();
-		Property					property			= propertyService.getPropertyById(Integer.parseInt(propertyId));
+			throws IOException, ServletException {
+		String propertyId = (String) request.getParameter("propertyId");
+		String imageName = (String) request.getParameter("imageName");
+		MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+		Map<String, MultipartFile> imageMap = multipartRequest.getFileMap();
+		Property property = propertyService.getPropertyById(Integer.parseInt(propertyId));
 
-		String						path				= this.getClass().getClassLoader().getResource("").getPath();
-		String						fullPath			= URLDecoder.decode(path, "UTF-8");
-		String						pathArr[]			= fullPath.split("/rems/");
+		String path = this.getClass().getClassLoader().getResource("").getPath();
+		String fullPath = URLDecoder.decode(path, "UTF-8");
+//		String	pathArr[]	= fullPath.split("/rems/");
+		int i = fullPath.lastIndexOf("rems/");
+		String pathArr[] = { fullPath.substring(0, i), fullPath.substring(i) };
 		fullPath = pathArr[0];
 
 		fileUpload(imageMap.get("image").getInputStream(), fullPath, imageMap.get("image").getOriginalFilename());
 
-		switch (imageName)
-		{
-			case "featuredImage":
-				property.setFeaturedImage(imageMap.get("image").getOriginalFilename());
-				break;
-			case "galleryImage1":
-				property.setGalleryImage1(imageMap.get("image").getOriginalFilename());
-				break;
-			case "galleryImage2":
-				property.setGalleryImage2(imageMap.get("image").getOriginalFilename());
-				break;
-			case "galleryImage3":
-				property.setGalleryImage3(imageMap.get("image").getOriginalFilename());
-				break;
-			case "galleryImage4":
-				property.setGalleryImage4(imageMap.get("image").getOriginalFilename());
-				break;
-			case "galleryImage5":
-				property.setGalleryImage5(imageMap.get("image").getOriginalFilename());
-				break;
+		switch (imageName) {
+		case "featuredImage":
+			property.setFeaturedImage(imageMap.get("image").getOriginalFilename());
+			break;
+		case "galleryImage1":
+			property.setGalleryImage1(imageMap.get("image").getOriginalFilename());
+			break;
+		case "galleryImage2":
+			property.setGalleryImage2(imageMap.get("image").getOriginalFilename());
+			break;
+		case "galleryImage3":
+			property.setGalleryImage3(imageMap.get("image").getOriginalFilename());
+			break;
+		case "galleryImage4":
+			property.setGalleryImage4(imageMap.get("image").getOriginalFilename());
+			break;
+		case "galleryImage5":
+			property.setGalleryImage5(imageMap.get("image").getOriginalFilename());
+			break;
 		}
 		propertyService.updateProperty(property);
 

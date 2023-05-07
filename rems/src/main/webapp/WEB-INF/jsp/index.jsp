@@ -119,7 +119,7 @@
                     <div class="col-xs-12 col-sm-12 col-md-12">
                         <div class="carousel carousel-dots" data-slide="3" data-slide-rs="2" data-autoplay="true" data-nav="false" data-dots="true" data-space="25" data-loop="true" data-speed="800">
                             <!-- .property-item -->
-							<c:forEach items="${propertyList}" var="property" >
+							<c:forEach items="${propertyList}" var="property" end = "5">
                                 <div class="property-item">
                                     <div class="property--img">
 										<a href="#">
