@@ -2954,7 +2954,6 @@ table tbody tr td {
 	text-transform: capitalize;
 	font-weight: 500;
 	line-height: 100px;
-	color: #ffffff;
 	padding: 0;
 }
 
@@ -4707,7 +4706,7 @@ li.dropdown-submenu > ul.dropdown-menu > li.has-dropdown > ul.dropdown-menu.left
 	font-weight: 500;
 	line-height: 100px;
 	text-transform: capitalize;
-	color: #ffffff;
+	/*color: #ffffff;*/
 	display: block;
 	margin-right: 30px;
 	cursor: pointer;
