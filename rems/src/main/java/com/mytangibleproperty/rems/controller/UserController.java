@@ -22,6 +22,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -50,12 +52,17 @@ import com.mytangibleproperty.rems.services.PropertyTypeService;
 import com.mytangibleproperty.rems.services.StateService;
 import com.mytangibleproperty.rems.services.UserService;
 
+import lombok.extern.log4j.Log4j2;
+
 /**
  * @author Satbir Kaur
  *
  */
+@Log4j2
 @Controller
 public class UserController {
+	
+	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
 	@Autowired
 	UserService userService;
@@ -83,6 +90,8 @@ public class UserController {
 
 	@PostMapping(value = "/login.html")
 	public ModelAndView login(HttpServletRequest request, HttpServletResponse response) {
+		logger.info("login");
+		
 		String email = (String) request.getParameter("email");
 		String passwordInput = (String) request.getParameter("password");
 
@@ -311,12 +320,12 @@ public class UserController {
 		property.setUser(user);
 		Random randomNum = new Random();
 		property.setDisplayPropertyId(100000000 + randomNum.nextInt(900000000));
-		property.setFeaturedImage(imageMap.get("uploadedFeaturedImage").getOriginalFilename());
-		property.setGalleryImage1(imageMap.get("uploadedGalleryImage1").getOriginalFilename());
-		property.setGalleryImage2(imageMap.get("uploadedGalleryImage2").getOriginalFilename());
-		property.setGalleryImage3(imageMap.get("uploadedGalleryImage3").getOriginalFilename());
-		property.setGalleryImage4(imageMap.get("uploadedGalleryImage4").getOriginalFilename());
-		property.setGalleryImage5(imageMap.get("uploadedGalleryImage5").getOriginalFilename());
+		property.setFeaturedImage(new Date().getTime()+1+imageMap.get("uploadedFeaturedImage").getOriginalFilename());
+		property.setGalleryImage1(new Date().getTime()+2+imageMap.get("uploadedGalleryImage1").getOriginalFilename());
+		property.setGalleryImage2(new Date().getTime()+3+imageMap.get("uploadedGalleryImage2").getOriginalFilename());
+		property.setGalleryImage3(new Date().getTime()+4+imageMap.get("uploadedGalleryImage3").getOriginalFilename());
+		property.setGalleryImage4(new Date().getTime()+5+imageMap.get("uploadedGalleryImage4").getOriginalFilename());
+		property.setGalleryImage5(new Date().getTime()+6+imageMap.get("uploadedGalleryImage5").getOriginalFilename());
 		property.setListingDate(new Date());
 
 		String path = this.getClass().getClassLoader().getResource("").getPath();
